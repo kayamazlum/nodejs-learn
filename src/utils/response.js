@@ -1,6 +1,6 @@
 class Response {
-  constructor(data = null, message = null, status) {
-    (this.data = data), (this.message = message), (this.status = status);
+  constructor(data = null, message = null) {
+    (this.data = data), (this.message = message);
   }
 
   success(res) {
@@ -26,4 +26,37 @@ class Response {
       message: this.message ?? "İşlem başarısız!",
     });
   }
+
+  error400(res) {
+    return res.status(400).json({
+      success: false,
+      data: this.data,
+      message: this.message ?? "İşlem başarısız!",
+    });
+  }
+
+  error401(res) {
+    return res.status(401).json({
+      success: false,
+      data: this.data,
+      message: this.message ?? "Lütfen oturum açın!",
+    });
+  }
+
+  error404(res) {
+    return res.status(404).json({
+      success: false,
+      data: this.data,
+      message: this ?? "İşlem başarısız!",
+    });
+  }
+  error429(res) {
+    return res.status(429).json({
+      success: false,
+      data: this.data,
+      message: this.message ?? "Çok fazla istek atıldı!",
+    });
+  }
 }
+
+module.exports = Response;

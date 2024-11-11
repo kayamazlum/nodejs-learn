@@ -2,6 +2,7 @@ require("express-async-errors");
 const user = require("../models/user.model");
 const bcrypt = require("bcrypt");
 const APIError = require("../utils/errors");
+const Response = require("../utils/response");
 
 const login = async (req, res) => {
   console.log(req.body);
@@ -21,23 +22,16 @@ const register = async (req, res) => {
   req.body.password = await bcrypt.hash(req.body.password, 10);
   console.log("hash sifre : ", req.body.password);
 
-  try {
-    const userSave = new user(req.body);
-    await userSave
-      .save()
-      .then((response) => {
-        return res.status(201).json({
-          succsess: true,
-          data: response,
-          message: "Kayıt başarılı",
-        });
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  } catch (error) {
-    console.log(error);
-  }
+  const userSave = new user(req.body);
+  await userSave
+    .save()
+    .then((data) => {
+      return new Response(data, "Kayıt başarılı.").created(res);
+    })
+    .catch((err) => {
+      throw new APIError("Kullanıcı kayıt edilemedi!", 400);
+      console.log(err);
+    });
 };
 
 module.exports = { login, register };

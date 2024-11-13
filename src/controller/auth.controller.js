@@ -30,7 +30,6 @@ const register = async (req, res) => {
     })
     .catch((err) => {
       throw new APIError("Kullanıcı kayıt edilemedi!", 400);
-      console.log(err);
     });
 };
 

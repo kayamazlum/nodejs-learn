@@ -47,7 +47,7 @@ class authValidation {
         .validateAsync(req.body);
     } catch (error) {
       if (error.details && error?.details[0].message) {
-        throw new APIError(error.detail[0].message, 400);
+        throw new APIError(error.details[0].message, 400);
       } else {
         throw new APIError("Lütfen validasyon kurallarına uyun", 400);
       }

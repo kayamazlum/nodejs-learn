@@ -17,6 +17,7 @@ const login = async (req, res) => {
 
   createToken(userInfo, res);
 };
+
 const register = async (req, res) => {
   const { email } = req.body;
   // req.body.email //bu şekilde de emaili alabiliriz
@@ -42,4 +43,10 @@ const register = async (req, res) => {
     });
 };
 
-module.exports = { login, register };
+const me = async (req, res) => {
+  console.log("me içerisinde ");
+
+  return new Response(req.user).success(res);
+};
+
+module.exports = { login, register, me };

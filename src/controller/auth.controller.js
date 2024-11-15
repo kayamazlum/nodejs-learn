@@ -6,6 +6,8 @@ const Response = require("../utils/response");
 const { createToken } = require("../middlewares/auth");
 
 const login = async (req, res) => {
+  console.log("login içerisinde");
+
   const { email, password } = req.body;
   const userInfo = await user.findOne({ email });
   console.log(userInfo);

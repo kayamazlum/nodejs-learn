@@ -8,6 +8,7 @@ const cors = require("cors");
 const corsOptions = require("./src/helpers/corsOptions.js");
 const mongoSanitize = require("express-mongo-sanitize");
 const path = require("path");
+const apiLimiter = require("./src/middlewares/rateLimit.js");
 
 const app = express();
 const port = process.env.PORT || 5001;
@@ -23,6 +24,8 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/uploads", express.static(__dirname));
 
 app.use(cors(corsOptions)); //tekrar et
+
+app.use("/api", apiLimiter);
 
 app.use(
   mongoSanitize({

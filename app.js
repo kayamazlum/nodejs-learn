@@ -9,6 +9,8 @@ const corsOptions = require("./src/helpers/corsOptions.js");
 const mongoSanitize = require("express-mongo-sanitize");
 const path = require("path");
 const apiLimiter = require("./src/middlewares/rateLimit.js");
+const moment = require("moment-timezone");
+moment.tz.setDefault("Europe/Istanbul");
 
 const app = express();
 const port = process.env.PORT || 5001;

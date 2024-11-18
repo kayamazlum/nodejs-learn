@@ -3,7 +3,10 @@ const user = require("../models/user.model");
 const bcrypt = require("bcrypt");
 const APIError = require("../utils/errors");
 const Response = require("../utils/response");
-const { createToken } = require("../middlewares/auth");
+const { createToken, temporaryToken } = require("../middlewares/auth");
+const crypto = require("crypto");
+const sendEmail = require("../utils/sendMail");
+const moment = require("moment");
 
 const login = async (req, res) => {
   console.log("login içerisinde");
@@ -51,4 +54,66 @@ const me = async (req, res) => {
   return new Response(req.user).success(res);
 };
 
-module.exports = { login, register, me };
+const forgetPassword = async (req, res) => {
+  const { email } = req.body;
+
+  const userInfo = await user.findOne({ email }).select("name lastname email");
+
+  if (!userInfo) return new APIError("Geçersiz kullanıcı", 400);
+  console.log("user info :  ", userInfo);
+
+  const resetCode = crypto.randomBytes(3).toString("hex");
+
+  await sendEmail({
+    from: process.env.EMAIL_USER,
+    to: userInfo.email,
+    subject: "Şifre Sıfırlama",
+    text: `Şifre sıfırlama kodunuz: ${resetCode}`,
+  });
+
+  await user.updateOne(
+    { email },
+    {
+      reset: {
+        code: resetCode,
+        time: moment(new Date())
+          .add(15, "minute")
+          .format("YYYY-MM-DD HH:mm:ss"),
+      },
+    }
+  );
+
+  return new Response(true, "Lütfen mail kutunuzu kontrol ediniz.").success(
+    res
+  );
+};
+
+const resetCodeCheck = async (req, res) => {
+  const { email, code } = req.body;
+
+  const userInfo = await user
+    .findOne({ email })
+    .select("_id name lastname email reset");
+
+  if (!userInfo) throw new APIError("Geçersiz kod", 401);
+
+  const dbTime = moment(userInfo.reset.time);
+  const nowTime = moment(new Date());
+
+  const timeDiff = dbTime.diff(nowTime, "minutes");
+  console.log("Zaman farkı: ", timeDiff);
+
+  if (timeDiff <= 0 || userInfo.reset.code === code)
+    throw new APIError("Geçersiz kod", 401);
+
+  const temporaryToken = await createTemporaryToken(
+    userInfo._id,
+    userInfo.email
+  );
+
+  return new Response(temporaryToken, "Şifrenizi sıfırlayabilirisiniz").success(
+    res
+  );
+};
+
+module.exports = { login, register, me, forgetPassword };

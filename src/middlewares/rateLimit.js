@@ -5,8 +5,8 @@ const allowList = ["::1"];
 const apiLimiter = rateLimit({
   WindowMs: 15 * 60 * 1000, //15dk
   max: (req, res) => {
-    console.log("api url : ", req.url);
-    console.log("api ip : ", req.ip);
+    // console.log("api url : ", req.url);
+    // console.log("api ip : ", req.ip);
 
     if (req.url === "/login" || req.url === "/register") return 5;
     else return 100;

@@ -9,7 +9,7 @@ const corsOptions = (req, callback) => {
 
     corsOptions = { origin: true };
   } else {
-    console.log("else içerisinde");
+    // console.log("else içerisinde");
 
     corsOptions = { origin: false };
   }

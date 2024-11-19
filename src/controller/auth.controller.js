@@ -3,7 +3,11 @@ const user = require("../models/user.model");
 const bcrypt = require("bcrypt");
 const APIError = require("../utils/errors");
 const Response = require("../utils/response");
-const { createToken, temporaryToken } = require("../middlewares/auth");
+const {
+  createToken,
+  createTemporaryToken,
+  decodedTemporaryToken,
+} = require("../middlewares/auth");
 const crypto = require("crypto");
 const sendEmail = require("../utils/sendMail");
 const moment = require("moment");
@@ -63,13 +67,14 @@ const forgetPassword = async (req, res) => {
   console.log("user info :  ", userInfo);
 
   const resetCode = crypto.randomBytes(3).toString("hex");
+  console.log(resetCode);
 
-  await sendEmail({
-    from: process.env.EMAIL_USER,
-    to: userInfo.email,
-    subject: "Şifre Sıfırlama",
-    text: `Şifre sıfırlama kodunuz: ${resetCode}`,
-  });
+  // await sendEmail({
+  //   from: process.env.EMAIL_USER,
+  //   to: userInfo.email,
+  //   subject: "Şifre Sıfırlama",
+  //   text: `Şifre sıfırlama kodunuz: ${resetCode}`,
+  // });
 
   await user.updateOne(
     { email },
@@ -102,18 +107,42 @@ const resetCodeCheck = async (req, res) => {
 
   const timeDiff = dbTime.diff(nowTime, "minutes");
   console.log("Zaman farkı: ", timeDiff);
+  console.log("userInfo: ", userInfo);
 
-  if (timeDiff <= 0 || userInfo.reset.code === code)
+  if (timeDiff <= 0 || userInfo.reset.code !== code) {
     throw new APIError("Geçersiz kod", 401);
+  }
 
   const temporaryToken = await createTemporaryToken(
     userInfo._id,
     userInfo.email
   );
 
-  return new Response(temporaryToken, "Şifrenizi sıfırlayabilirisiniz").success(
-    res
-  );
+  return new Response(
+    { temporaryToken },
+    "Şifrenizi sıfırlayabilirisiniz"
+  ).success(res);
 };
 
-module.exports = { login, register, me, forgetPassword };
+const resetPassword = async (req, res) => {
+  const { password, temporaryToken } = req.body;
+  const decoededToken = await decodedTemporaryToken(temporaryToken);
+  console.log("decodedToken", decodedToken);
+
+  const hashPassword = await bcrypt.hash(password, 10);
+  await user.findByIdAndUpdate(
+    { _id: decoededToken._id },
+    { reset: { code: null, time: null }, password: hashPassword }
+  );
+
+  return new Response(decoededToken, "Şifre sıfırlama başarılı").success(res);
+};
+
+module.exports = {
+  login,
+  register,
+  me,
+  forgetPassword,
+  resetCodeCheck,
+  resetPassword,
+};

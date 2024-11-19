@@ -1,7 +1,6 @@
 const jwt = require("jsonwebtoken");
 const APIError = require("../utils/errors");
-const { me } = require("../controller/auth.controller");
-const user = require("../models/user.model");
+const user = require("../app/users/model");
 
 const createToken = async (user, res) => {
   const payload = {
